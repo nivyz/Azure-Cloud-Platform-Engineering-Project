@@ -1,4 +1,4 @@
-# Terraform Azure VM Lab
+# Terraform Azure VM Provisioning
 
 A simple Terraform project that deploys a small Azure Linux VM lab with secure SSH access, a public web VM, a private worker VM, cloud-init bootstrapping, tagging, and daily auto-shutdown.
 
