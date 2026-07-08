@@ -1,15 +1,13 @@
 # Terraform Azure VM Lab
 
-Beginner-friendly Terraform project that deploys a small Azure Linux VM lab with secure SSH access, a public web VM, a private worker VM, cloud-init bootstrapping, tagging, and daily auto-shutdown.
-
-The project is intentionally small and cost-aware. It avoids NAT Gateway, Application Gateway, Azure Firewall, Load Balancer, Bastion, Premium disks, and extra public IPs.
+A simple Terraform project that deploys a small Azure Linux VM lab with secure SSH access, a public web VM, a private worker VM, cloud-init bootstrapping, tagging, and daily auto-shutdown.
 
 ## Architecture
 
 ```text
-Your laptop
+Remote User
     |
-    | SSH 22 and HTTP 80 from your public IP only
+    | SSH 22 and HTTP 80 from specific public IP
     v
 Static Public IP
     |
@@ -187,7 +185,7 @@ terraform output private_vm_ssh_via_jump_command
 The jump-host flow is:
 
 ```text
-Your laptop -> public VM -> private VM
+User -> public VM -> private VM
 ```
 
 You do not need to copy your private SSH key to the public VM.
