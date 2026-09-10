@@ -1,0 +1,9 @@
+subscription_id = "00000000-0000-0000-0000-000000000000"
+project_name    = "tfpractice"
+location        = "westeurope"
+
+tags = {
+  managed_by = "terraform"
+  project    = "terraform-github-practice"
+  purpose    = "terraform-state"
+}
