@@ -1,0 +1,82 @@
+name: Terraform Azure environments
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Environment to target
+        required: true
+        type: choice
+        options:
+          - dev
+          - qa
+          - prod
+      operation:
+        description: Terraform operation
+        required: true
+        type: choice
+        default: plan
+        options:
+          - plan
+          - apply
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: terraform-${{ inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  terraform:
+    name: Terraform ${{ inputs.operation }} - ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    env:
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      ARM_USE_OIDC: true
+      ARM_USE_AZUREAD: true
+      TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      TF_IN_AUTOMATION: true
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Azure login with OIDC
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: "1.14.9"
+          terraform_wrapper: false
+
+      - name: Check formatting
+        working-directory: terraform_git_practice
+        run: terraform fmt -check -recursive
+
+      - name: Initialize Terraform
+        working-directory: terraform_git_practice/environments/${{ inputs.environment }}
+        run: terraform init -input=false -backend-config=backend.hcl
+
+      - name: Validate Terraform
+        working-directory: terraform_git_practice/environments/${{ inputs.environment }}
+        run: terraform validate -no-color
+
+      - name: Create Terraform plan
+        working-directory: terraform_git_practice/environments/${{ inputs.environment }}
+        run: terraform plan -input=false -no-color -out=tfplan
+
+      - name: Apply Terraform plan
+        if: inputs.operation == 'apply'
+        working-directory: terraform_git_practice/environments/${{ inputs.environment }}
+        run: terraform apply -input=false -auto-approve tfplan
